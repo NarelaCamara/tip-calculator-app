@@ -7,11 +7,34 @@ import { useState } from "react";
 function App() {
   const percent = [5, 10, 15, 25, 50];
 
-  const [custom, setcustom] = useState(0);
+  const [tip, setTip] = useState(0);
 
   const [numberOfPeople, setNumberOfPeople] = useState(0);
 
   const [bill, setBill] = useState(0);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Bloquea cualquier tecla que no sea número o control
+    if (
+      !/[0-9]/.test(e.key) && // no es número
+      e.key !== "Backspace" &&
+      e.key !== "Delete" &&
+      e.key !== "ArrowLeft" &&
+      e.key !== "ArrowRight" &&
+      e.key !== "Tab"
+    ) {
+      e.preventDefault();
+    }
+  };
+
+  const handleTipPerPerson = () => {
+    const resultado = (tip / 100) * bill;
+    return numberOfPeople > 0 ? resultado / numberOfPeople : 0;
+  };
+  const handleTipTotal = () => {
+    const resultado = (tip / 100) * bill;
+    return resultado;
+  };
 
   return (
     <div className="bg-[#9FE8DF] flex flex-col items-center justify-center min-h-screen min-w-[375px] ">
@@ -27,10 +50,13 @@ function App() {
           />
           <input
             type="number"
+            onKeyDown={handleKeyDown}
             name="bill"
             id="bill"
             placeholder="0"
+            pattern="[1-9][0-9]*"
             min={0}
+            onChange={(e) => setBill(Number(e.target.value))}
             inputMode="numeric"
             className="bg-[#F3F9FA] rounded-lg p-2 text-2xl text-end text-[#00474B] w-full [&::-webkit-inner-spin-button]:appearance-none
                 [&::-webkit-outer-spin-button]:appearance-none
@@ -40,13 +66,14 @@ function App() {
 
         <div className="my-8">
           <h2 className="text-[#5E7A7D] text-[16px] ">Select Tip %</h2>
+
           <div className="grid grid-cols-2 grid-rows-2 gap-4 items-center">
             {percent.map((e) => (
               <button
                 key={e}
                 type="button"
                 className="bg-[#00474B] py-2 px-10 rounded-sm m-2  h-[48px]"
-                onClick={() => console.log("e", e)}
+                onClick={() => setTip(e)}
               >
                 <p className="text-white text-xl ">{e}%</p>
               </button>
@@ -57,6 +84,8 @@ function App() {
               name="bill"
               min={0}
               placeholder="custom"
+              onChange={(e) => setTip(Number(e.target.value))}
+              onKeyDown={handleKeyDown}
               id="bill"
               className="bg-[#F3F9FA] rounded-sm px-4 py-2 text-2xl h-[48px] text-end  text-[#00474B] [&::-webkit-inner-spin-button]:appearance-none
                 [&::-webkit-outer-spin-button]:appearance-none
@@ -65,7 +94,12 @@ function App() {
           </div>
         </div>
 
-        <h2 className="text-[#5E7A7D] text-[16px] ">Number of People</h2>
+        <div className="flex flex-row justify-between py-2">
+          <p className="text-[#5E7A7D] text-[16px] text-start ">
+            Number of People
+          </p>
+          {numberOfPeople === 0 && tip > 0 && bill > 0 && <p className="text-[#E17052] text-[16px] text-end">Can’t be zero</p>}
+        </div>
 
         <div className="relative w-full">
           <img
@@ -75,14 +109,20 @@ function App() {
           />
           <input
             type="number"
-            name="bill"
-            id="bill"
+            name="numberOfPeople"
+            id="numberOfPeople"
             placeholder="0"
             min={0}
+            onKeyDown={handleKeyDown}
+            onChange={(e) => setNumberOfPeople(Number(e.target.value))}
             inputMode="numeric"
-            className="bg-[#F3F9FA] rounded-lg p-2 text-2xl w-full text-[#00474B]  text-end [&::-webkit-inner-spin-button]:appearance-none
+            className={` ${
+              numberOfPeople === 0 && tip > 0 && bill > 0
+                ? "border-[#E17052] border-2"
+                : " "
+            }  bg-[#F3F9FA] rounded-lg p-2 text-2xl w-full text-[#00474B]  text-end [&::-webkit-inner-spin-button]:appearance-none
                 [&::-webkit-outer-spin-button]:appearance-none
-                [appearance:textfield]"
+                [appearance:textfield]`}
           />
         </div>
         <div className=" bg-[#00474B] p-6 rounded-xl mt-8  px-6">
@@ -91,13 +131,17 @@ function App() {
               <p className="text-white text-[16px] ">Tip Amount</p>
               <p className="text-[#7F9D9F] text-[13px] ">/ person</p>
             </div>
-            <p className="text-white text-4xl text-end ">$0.00</p>
+            <p className="text-white text-4xl text-end ">
+              ${handleTipPerPerson() + ".00"}
+            </p>
 
             <div>
               <p className="text-white  text-[16px] ">Total</p>
               <p className="text-[#7F9D9F] text-[13px] ">/ person</p>
             </div>
-            <p className="text-white text-4xl text-end">$0.00</p>
+            <p className="text-white text-4xl text-end">
+              ${handleTipTotal() + ".00"}
+            </p>
           </div>
           <button
             type="button"
